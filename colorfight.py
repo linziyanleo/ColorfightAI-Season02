@@ -25,8 +25,9 @@ class Cell:
         self.takeTime   = cellData['t']
         self.finishTime = cellData['f']
         self.cellType   = cellData['ct']
-        self.isBase     = cellData['b']
-        self.isBuilding = cellData['bt'] != 0
+        self.buildType  = cellData['b']
+        self.isBase     = cellData['b'] == "base"
+        self.isBuilding = cellData['bf'] == False
         self.buildTime  = cellData['bt']
 
     def __repr__(self):
@@ -51,6 +52,8 @@ class User:
         self.cellNum    = userData['cell_num']
         if 'energy' in userData:
             self.energy = userData['energy']
+        if 'gold' in userData:
+            self.gold = userData['gold']
     
     def __repr__(self):
         return "uid: {}\nname: {}\ncd time: {}\ncell number: {}\n".format(self.id, self.name, self.cdTime, self.cellNum)
@@ -66,6 +69,8 @@ class Game:
         self.cellNum = 0
         self.cdTime = 0
         self.energy = 0
+        self.gold = 0
+        self.gameVersion = ''
         self.Refresh()
 
     def JoinGame(self, name, password = None, force = False):
@@ -163,13 +168,14 @@ class Game:
             u = User(userData)
             self.users.append(u)
             if u.id == self.uid:
+                self.gold   = u.gold
                 self.energy = u.energy
                 self.cdTime = u.cdTime
                 self.cellNum = u.cellNum
     def Refresh(self):
         headers = {'content-type': 'application/json'}
         if self.data == None:
-            r = requests.post(hostUrl + 'getgameinfo', data=json.dumps({"protocol":1}), headers = headers)
+            r = requests.post(hostUrl + 'getgameinfo', data=json.dumps({"protocol":2}), headers = headers)
             if r.status_code == 200:
                 self.data = r.json()
                 self.width = self.data['info']['width']
